@@ -1,0 +1,349 @@
+config.xml file 
+=======================================
+
+?xml version="1.0" encoding="UTF-8"?>
+<hibernate-configuration>
+<session-factory>
+ <property name="hibernate.connection.Driver_class">com.mysql.cj.jdbc.Driver</property>
+ <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/sclinfo</property>
+<property name="hibernate.connection.user">root</property>
+<property name="hibernate.connection.password">root</property>
+<property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
+<property name="hibernate.show_sql">true</property>
+<property name="hibernate.hbm2ddl.auto">update</property>
+<mapping class="com.hibernate.emp.Employee"/>
+</session-factory>
+</hibernate-configuration>
+
+
+ConfigurationEmp.java   (class)
+==========================================
+
+package com.hibernate.emp;
+
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.Metadata;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+
+public class ConfigurationEmp {
+
+	public static SessionFactory getsFactory() {
+		StandardServiceRegistry ssRegistry=new StandardServiceRegistryBuilder().configure("config.xml").build();
+	       Metadata metadata=new MetadataSources(ssRegistry).getMetadataBuilder().build();
+			
+		  SessionFactory sFactory=metadata.buildSessionFactory();
+		
+		return sFactory;
+	}
+}
+
+
+Employee.java (class)
+==========================================
+
+package com.hibernate.emp;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name="Emp_Details")
+public class Employee {
+	
+	@Id
+	@Column(name="Emp_Id")
+	private Integer empId;
+	@Column(name="Emp_Name")
+	private String empName;
+	@Column(name="Emp_Salary")
+	private Integer empSalary;
+	@Column(name="Emp_Experience")
+	private Integer experience;
+
+	public Employee(){
+		super();
+	}
+
+	
+	public Employee(Integer empId, String empName, Integer empSalary, Integer experience) {
+		this.empId = empId;
+		this.empName = empName;
+		this.empSalary = empSalary;
+		this.experience = experience;
+	}
+
+
+	public Integer getEmpId() {
+		return empId;
+	}
+
+	public void setEmpId(Integer empId) {
+		this.empId = empId;
+	}
+
+	public String getEmpName() {
+		return empName;
+	}
+
+	public void setEmpName(String empName) {
+		this.empName = empName;
+	}
+
+	public Integer getEmpSalary() {
+		return empSalary;
+	}
+
+	public void setEmpSalary(Integer empSalary) {
+		this.empSalary = empSalary;
+	}
+
+	public Integer getExperience() {
+		return experience;
+	}
+
+	public void setExperience(Integer experience) {
+		this.experience = experience;
+	}
+
+	@Override
+	public String toString() {
+		return "Employee [empId=" + empId + ", empName=" + empName + ", empSalary=" + empSalary + ", experience="
+				+ experience + "]";
+	}
+	
+}
+
+
+EmployeeOperations.java     (class)
+=======================================================
+
+package com.hibernate.emp;
+
+import java.util.List;
+import java.util.Scanner;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.query.Query;
+
+public class EmployeeOperations {
+	
+	Session session;
+	Scanner scanner=new Scanner(System.in);
+	
+    //method to insert records 
+    void insertEmployee(SessionFactory sf) {
+    	
+		session=sf.openSession();
+		Transaction transaction= session.beginTransaction();
+		
+		Employee employee=new Employee();
+		System.out.println("Enter values of Employee");
+		
+		System.out.println("Enter Id for Employee:");
+		int empId=scanner.nextInt();
+		employee.setEmpId(empId);
+		
+		System.out.println("Enter Name for Employee:");
+		employee.setEmpName(scanner.next());
+		
+		System.out.println("Enter Salary for Employee:");
+		employee.setEmpSalary(scanner.nextInt());
+		
+		System.out.println("Enter Experience for Employee:");
+		employee.setExperience(scanner.nextInt());
+		
+		session.persist(employee);
+		transaction.commit();
+		session.close();
+
+	}
+    //method to update employee record
+    void updateemployee(SessionFactory sf) {
+		session=sf.openSession();
+		Transaction transaction= session.beginTransaction();
+		Employee employee=new Employee();
+		System.out.println("Enter values of Employee to update");
+		System.out.println("Enter Id for Employee:");
+		int empId=scanner.nextInt();
+		employee.setEmpId(empId);
+		System.out.println("Enter Name for Employee:");
+		employee.setEmpName(scanner.next());
+		System.out.println("Enter Salary for Employee:");
+		employee.setEmpSalary(scanner.nextInt());
+		System.out.println("Enter Experience for Employee:");
+		employee.setExperience(scanner.nextInt());
+		
+		session.saveOrUpdate(employee);
+		transaction.commit();
+		session.close();
+
+	}
+    
+    //method to delete employee record
+    void deleteEmployee(SessionFactory sf) {
+		session=sf.openSession();
+		Transaction transaction= session.beginTransaction();
+		Employee employee=new Employee();
+	
+		System.out.println("Enter Id of Employee to delete:");
+		int empId=scanner.nextInt();
+		employee.setEmpId(empId);
+		session.delete(employee);
+		transaction.commit();
+		session.close();
+
+	}
+    
+    //method to select all employee records
+    void getAllEmployees(SessionFactory sf) {
+		session=sf.openSession();
+		Query<Employee> query = session.createQuery("from Employee");
+        List<Employee> employeeList = query.list(); // Fetching list of employees
+		
+		for(Employee e:employeeList)
+			System.out.println(e);
+		session.close();
+
+	}
+}
+
+
+EmployeeMain.java     (class)
+======================================================
+
+package com.hibernate.emp;
+
+import java.util.Scanner;
+
+import org.hibernate.SessionFactory;
+
+public class EmployeeMain {
+
+	public static void main(String[] args) {
+		
+		SessionFactory sFactory=ConfigurationEmp.getsFactory();
+		
+		Scanner sc = new Scanner(System.in);
+		
+		EmployeeOperations eo = new EmployeeOperations();
+		
+		int select;
+		while(true) {
+	        System.out.println("1. Insert Result");
+	        System.out.println("2. Update Result");
+	        System.out.println("3. Delete Result");
+	        System.out.println("4. GetAll Results");
+	        System.out.println("5. Exit");
+	        System.out.print("Select Operation you want to perform :");
+	        select = sc.nextInt();
+	   
+            //using switch to perform specific operation
+			switch(select){
+			case 1: eo.insertEmployee(sFactory);
+			break;
+			case 2:eo.updateemployee(sFactory);
+			break;
+			case 3: eo.deleteEmployee(sFactory);
+			break;
+			case 4: eo.getAllEmployees(sFactory);
+			break;
+			case 5:System.exit(0);
+			}
+		}
+
+	}	
+}
+
+Output :
+====================================
+
+1. Insert Result
+2. Update Result
+3. Delete Result
+4. GetAll Results
+5. Exit
+Select Operation you want to perform :1
+Enter values of Employee
+Enter Id for Employee:
+1001
+Enter Name for Employee:
+Teju
+Enter Salary for Employee:
+25000
+Enter Experience for Employee:
+2
+Hibernate: insert into Emp_Details (Emp_Name, Emp_Salary, Emp_Experience, Emp_Id) values (?, ?, ?, ?)
+1. Insert Result
+2. Update Result
+3. Delete Result
+4. GetAll Results
+5. Exit
+Select Operation you want to perform :1
+Enter values of Employee
+Enter Id for Employee:
+1002
+Enter Name for Employee:
+Sree
+Enter Salary for Employee:
+30000
+Enter Experience for Employee:
+4
+Hibernate: insert into Emp_Details (Emp_Name, Emp_Salary, Emp_Experience, Emp_Id) values (?, ?, ?, ?)
+1. Insert Result
+2. Update Result
+3. Delete Result
+4. GetAll Results
+5. Exit
+Select Operation you want to perform :4
+Hibernate: select e1_0.Emp_Id, e1_0.Emp_Name, e1_0.Emp_Salary, e1_0.Emp_Experience from Emp_Details as e1_0
+Employee [empId=1001, empName=Teju, empSalary=25000, experience=2]
+Employee [empId=1002, empName=Sree, empSalary=30000, experience=4]
+1. Insert Result
+2. Update Result
+3. Delete Result
+4. GetAll Results
+5. Exit
+Select Operation you want to perform :2
+Enter values of Employee to update
+Enter Id for Employee:
+1002
+Enter Name for Employee:
+Jack
+Enter Salary for Employee:
+50000
+Enter Experience for Employee:
+8
+Hibernate: select null, e1_0.Emp_Name, e1_0.Emp_Salary, e1_0.Emp_Experience from Emp_Details as e1_0 where e1_0.Emp_Id = ?
+Hibernate: update Emp_Details set Emp_Name=?, Emp_Salary=?, Emp_Experience=? where Emp_Id=?
+1. Insert Result
+2. Update Result
+3. Delete Result
+4. GetAll Results
+5. Exit
+Select Operation you want to perform :3
+Enter Id of Employee to delete:
+1001
+Hibernate: select null, e1_0.Emp_Name, e1_0.Emp_Salary, e1_0.Emp_Experience from Emp_Details as e1_0 where e1_0.Emp_Id = ?
+Hibernate: delete from Emp_Details where Emp_Id=?
+1. Insert Result
+2. Update Result
+3. Delete Result
+4. GetAll Results
+5. Exit
+Select Operation you want to perform :4
+Hibernate: select e1_0.Emp_Id, e1_0.Emp_Name, e1_0.Emp_Salary, e1_0.Emp_Experience from Emp_Details as e1_0
+Employee [empId=1002, empName=Jack, empSalary=50000, experience=8]
+1. Insert Result
+2. Update Result
+3. Delete Result
+4. GetAll Results
+5. Exit
+Select Operation you want to perform :5
+                                           =======Exited========
+

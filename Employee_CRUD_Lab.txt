@@ -1,0 +1,233 @@
+Employee/Pom.xml
+==============================
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>ApjfsaHibernate1</groupId>
+  <artifactId>Employee</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <dependencies>
+		<dependency>
+			<groupId>org.hibernate.orm</groupId>
+			<artifactId>hibernate-core</artifactId>
+			<version>6.0.0.Alpha8</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.mysql/mysql-connector-j -->
+		<dependency>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
+			<version>8.0.33</version>
+		</dependency>
+	</dependencies>  
+</project>
+
+
+
+config.xml file
+==============================
+
+<?xml version="1.0" encoding="UTF-8"?>
+<hibernate-configuration>
+<session-factory>
+		<property name="hibernate.connection.Driver_class">com.mysql.cj.jdbc.Driver</property>
+
+		<property name="hibernate.connection.url">jdbc:mysql://localhost:3306/Employeemgmt</property>
+
+		<property name="hibernate.connection.user">root</property>
+
+		<property name="hibernate.connection.password">root</property>
+
+		<property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
+
+		<property name="hibernate.show_sql">true</property>
+
+		<property name="hibernate.hbm2ddl.auto">update</property>
+
+                <mapping resource="mapping.xml"/>
+</session-factory>
+</hibernate-configuration>
+
+
+mapping.xml file
+===============================
+
+<hibernate-mapping>
+	
+	<class name="com.apjfsa.hibernate1.Employee" table="Employee">
+		
+		<id name="empId">
+			
+			<generator class="assigned"></generator>
+			
+		</id>
+		
+		<property name="empName"></property>
+		
+		<property name="empSalary"></property>
+		
+		<property name="experience"></property>
+
+	</class>
+	
+</hibernate-mapping>
+
+
+Employee.java class
+=====================================
+
+package com.apjfsa.hibernate1;
+
+public class Employee {
+
+	private Integer empId;
+	private String empName;
+	private Integer empSalary;
+	private Integer experience;
+
+        // Default constructor
+	public Employee(){
+		
+	}
+
+        // Parameterized constructor for creating an Employee object with specific values
+	public Employee(Integer empId, String empName, Integer empSalary, Integer experience) {
+		this.empId = empId;
+		this.empName = empName;
+		this.empSalary = empSalary;
+		this.experience = experience;
+	}
+
+             // Getter for employee ID
+	public Integer getEmpId() {
+		return empId;
+	}
+              
+            // Setter for employee ID
+	public void setEmpId(Integer empId) {
+		this.empId = empId;
+	}
+             
+           // Getter for employee name
+	public String getEmpName() {
+		return empName;
+	}
+
+            // Setter for employee name
+	public void setEmpName(String empName) {
+		this.empName = empName;
+	}
+
+           // Getter for employee salary
+	public Integer getEmpSalary() {
+		return empSalary;
+	}
+
+           // Setter for employee salary
+	public void setEmpSalary(Integer empSalary) {
+		this.empSalary = empSalary;
+	}
+
+             // Getter for employee experience
+	public Integer getExperience() {
+		return experience;
+	}
+
+            // Setter for employee experience
+	public void setExperience(Integer experience) {
+		this.experience = experience;
+	}
+
+}
+
+
+EmployeeOperations.java
+==========================================
+
+package com.apjfsa.hibernate1;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.boot.Metadata;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+
+public class EmployeeOperations {
+
+	public static void main(String[] args) {
+		
+		// Step 1: Configuring Hibernate and building the ServiceRegistry 
+
+		StandardServiceRegistry ssRegistry=new StandardServiceRegistryBuilder().configure("config.xml").build();
+		
+		// Step 2: Creating Metadata from the ServiceRegistry. Metadata holds mapping and configuration data.
+	       Metadata metadata=new MetadataSources(ssRegistry).getMetadataBuilder().build();
+	       
+	    // Step 3: Building the SessionFactory from the Metadata.
+	       SessionFactory sFactory=metadata.buildSessionFactory();
+	       
+	    // Step 4: Opening a session to interact with the database
+			  Session session=sFactory.openSession();
+			  
+		// Step 5: Begin a transaction
+			  Transaction transaction=session.beginTransaction();
+
+		// Step 6: Creating  Employee objects and inserting values
+
+				 Employee emp1=new Employee(1001,"Teju",25000,9);
+				 Employee emp2=new Employee(1002,"Sree",15000,8);
+				 Employee emp3=new Employee(1003,"Kavya",28000,5);
+
+	 	// Step 7:  To Save the Employee objects to the database  using session.save method
+
+				 session.save(emp1);
+				 session.save(emp2);
+				 session.save(emp3);
+
+		// Step 8: Updating the record using saveOrUpdate method
+				
+				emp2.setEmpId(1000);
+				session.saveOrUpdate(emp2);
+				
+		// Step 9: Deleting a record using delete method
+				session.delete(emp2);
+				
+		// Printing a stmnt after updation and deletion operations
+			System.out.println("Successfully updated and deleted");
+				
+		//Step 10: Objects will be saved to the database when we commit
+				
+				transaction.commit();
+				
+		 // Step 11:closing the session & session factory
+				
+				session.close();
+				sFactory.close();
+	}
+}
+
+
+Output :
+===============================
+
+Successfully updated and deleted
+Hibernate: insert into Employee (empName, empSalary, experience, empId) values (?, ?, ?, ?)
+Hibernate: insert into Employee (empName, empSalary, experience, empId) values (?, ?, ?, ?)
+Hibernate: insert into Employee (empName, empSalary, experience, empId) values (?, ?, ?, ?)
+Hibernate: delete from Employee where empId=?
+
+
+Table in MySQL :
+===================================
+
+use Employeemgmt;
+select * from Employee;
+
+empId	  empName 	empSalary	empExperience
+1001	    Teju	25000	           9
+1003        Kavya      28000               5
+       
+
+
+

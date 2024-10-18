@@ -1,0 +1,270 @@
+// Application using Hibernate with one-to-one  Association (Grade and Teacher onetoone association)
+
+config.xml  file
+-------------------------------------
+
+<?xml version="1.0" encoding="UTF-8"?>
+<hibernate-configuration>
+<session-factory>
+ <property name="hibernate.connection.Driver_class">com.mysql.cj.jdbc.Driver</property>
+ <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/sclmngmnt</property>
+<property name="hibernate.connection.user">root</property>
+<property name="hibernate.connection.password">root</property>
+<property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
+<property name="hibernate.show_sql">true</property>
+<property name="hibernate.hbm2ddl.auto">update</property>
+<mapping class="com.hibernate.entity.Grade"/>
+<mapping class="com.hibernate.entity.Teacher"/>
+</session-factory>
+</hibernate-configuration>
+
+
+ConfigurationUtilitty.java    (class)
+------------------------------------------
+
+package com.hibernate.entity;
+
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.Metadata;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+
+public class ConfigurationUtilitty {
+	
+	// Method to obtain a SessionFactory
+	public static SessionFactory getsFactory() {
+		
+		// Create a StandardServiceRegistry using the configuration file (config.xml)
+		StandardServiceRegistry ssRegistry=new StandardServiceRegistryBuilder().configure("config.xml").build();
+		
+		 // Build metadata from the service registry
+	       Metadata metadata=new MetadataSources(ssRegistry).getMetadataBuilder().build();
+			
+	    // Build the SessionFactory from the metadata
+		  SessionFactory sFactory=metadata.buildSessionFactory();
+		
+		// Return the created SessionFactory
+		return sFactory;
+	}
+
+}
+
+
+Grade.java    (class)
+---------------------------------------------
+
+package com.hibernate.entity;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToOne;
+
+@Entity    // Indicates that this class is an entity and will be mapped to a database table
+public class Grade {
+	
+		@Id  //Marks this field as the primary key 
+		private Integer gradeNo;
+		private Integer totalCount;
+
+		// Defines a one-to-one relationship with the Teacher entity
+		@OneToOne(targetEntity = Teacher.class, cascade = CascadeType.ALL)
+		
+		// The teacher associated with this grade
+		private Teacher teacher;
+
+		// Default constructor
+		Grade() {
+
+		}
+
+		// Getter for gradeNo
+		public Integer getGradeNo() {
+			return gradeNo;
+		}
+
+		// Setter for gradeNo
+		public void setGradeNo(Integer gradeNo) {
+			this.gradeNo = gradeNo;
+		}
+
+		 // Getter for totalCount
+		public Integer getTotalCount() {
+			return totalCount;
+		}
+
+		// Setter for totalCount
+		public void setTotalCount(Integer totalCount) {
+			this.totalCount = totalCount;
+		}
+
+		 // Getter for teacher
+		public Teacher getTeacher() {
+			return teacher;
+		}
+
+		 // Setter for teacher
+		public void setTeacher(Teacher teacher) {
+			this.teacher = teacher;
+		}
+}
+
+
+
+Teacher.java (class)
+------------------------------------------
+
+package com.hibernate.entity;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToOne;
+
+//Indicates that this class is an entity and will be mapped to a database table
+@Entity
+public class Teacher {
+	
+	@Id       // Marks this field as the primary key 
+	private Integer teacherId;
+	private String name;
+	private String qualification;
+	private Integer salary;
+	
+	// Defines a one-to-one relationship with the Grade entity
+	@OneToOne(targetEntity = Grade.class)
+	
+	// The grade associated with this teacher
+	private Grade grade;
+
+	// Default constructor
+	Teacher() {
+
+	}
+
+	// Getter for teacherId
+	public Integer getTeacherId() {
+		return teacherId;
+	}
+
+	// Setter for teacherId
+	public void setTeacherId(Integer teacherId) {
+		this.teacherId = teacherId;
+	}
+
+	// Getter for name
+	public String getName() {
+		return name;
+	}
+
+	// Setter for name
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	// Getter for qualification
+	public String getQualification() {
+		return qualification;
+	}
+
+	// Setter for qualification
+	public void setQualification(String qualification) {
+		this.qualification = qualification;
+	}
+
+	// Getter for salary
+	public Integer getSalary() {
+		return salary;
+	}
+
+	// Setter for salary
+	public void setSalary(Integer salary) {
+		this.salary = salary;
+	}
+
+	// Getter for grade
+	public Grade getGrade() {
+		return grade;
+	}
+
+	// Setter for grade
+	public void setGrade(Grade grade) {
+		this.grade = grade;
+	}
+}
+
+
+SchoolMgmtOperations.java      (class)
+-------------------------------------------------
+
+package com.hibernate.entity;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+
+public class SchoolMgmtOperations {
+
+	public static void main(String[] args) {
+		
+		// Obtain a SessionFactory  from the ConfigurationUtility
+	SessionFactory getsFactory=	ConfigurationUtilitty.getsFactory();
+	
+	// Open a new session from the SessionFactory
+	Session openSession = getsFactory.openSession();
+	 // Begin a transaction 
+	Transaction transaction = openSession.beginTransaction();
+	
+	// Create a new Grade object and set its properties
+	Grade grade=new Grade();
+	
+	grade.setGradeNo(5);
+	grade.setTotalCount(35);
+	
+	 // Create a new Teacher object and set its properties
+	Teacher teacher=new Teacher();
+	
+	teacher.setTeacherId(2344);
+	teacher.setName("Teju");
+	teacher.setQualification("BEd");
+	teacher.setSalary(60000);
+	
+	// Establish the relationship between the Teacher and Grade
+	teacher.setGrade(grade);
+	
+	grade.setTeacher(teacher);
+	
+	// Persist the Grade object
+	openSession.persist(grade);
+	
+	// Commit the transaction to save changes to the database
+	transaction.commit();
+	
+	// Close the session and SessionFactory
+	openSession.close();
+	getsFactory.close();
+
+	}
+}
+
+Output :
+----------------------------
+use sclmngmnt;
+select * from Grade;
+
+gradeNo   totalCount  teacher_teacherId
+
+  5          35          2344
+
+  3          20          2343
+
+  2          30          2342
+
+
+select * from Teacher;
+
+teacherId    name     qualification    salary     grade_gradeNo
+
+2342        Priya        Msc           35000          2
+2343        Preethi      MCA           45000          3
+2344        Teju         BEd           60000          5
